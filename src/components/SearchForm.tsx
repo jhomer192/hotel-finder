@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
 import type { SearchParams } from '../types/hotel';
 import { CITIES } from '../data/cities';
 
@@ -26,29 +26,20 @@ export function SearchForm({ onSearch, loading }: Props) {
   const [checkOut, setCheckOut] = useState(defaults.checkOut);
   const [guests, setGuests] = useState(2);
   const [rooms, setRooms] = useState(1);
-  const [suggestions, setSuggestions] = useState<typeof CITIES>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [activeIndex, setActiveIndex] = useState(-1);
   const inputRef = useRef<HTMLInputElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  const filterCities = useCallback((query: string) => {
-    if (!query.trim()) {
-      setSuggestions(CITIES.slice(0, 10));
-      return;
-    }
-    const q = query.toLowerCase();
-    const matches = CITIES.filter(
+  const suggestions = useMemo(() => {
+    if (!destination.trim()) return CITIES.slice(0, 10);
+    const q = destination.toLowerCase();
+    return CITIES.filter(
       (c) =>
         c.name.toLowerCase().includes(q) ||
         c.country.toLowerCase().includes(q)
     ).slice(0, 10);
-    setSuggestions(matches);
-  }, []);
-
-  useEffect(() => {
-    filterCities(destination);
-  }, [destination, filterCities]);
+  }, [destination]);
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
