@@ -1,0 +1,108 @@
+@import 'tailwindcss';
+@import './themes.css';
+
+@custom-variant dark (&:where([data-theme]));
+
+/* Base styles using CSS variables */
+html {
+  color-scheme: dark;
+}
+
+body {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  margin: 0;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg-primary);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
+}
+
+/* Leaflet overrides for dark theme */
+.leaflet-container {
+  background: var(--bg-secondary) !important;
+}
+.leaflet-popup-content-wrapper {
+  background: var(--bg-secondary) !important;
+  color: var(--text-primary) !important;
+  border-radius: 12px !important;
+  box-shadow: var(--card-shadow) !important;
+}
+.leaflet-popup-tip {
+  background: var(--bg-secondary) !important;
+}
+.leaflet-popup-close-button {
+  color: var(--text-muted) !important;
+}
+.leaflet-control-zoom a {
+  background: var(--bg-secondary) !important;
+  color: var(--text-primary) !important;
+  border-color: var(--border) !important;
+}
+
+/* Range slider styling */
+input[type='range'] {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--border);
+  outline: none;
+}
+input[type='range']::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--accent);
+  cursor: pointer;
+}
+input[type='range']::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--accent);
+  cursor: pointer;
+  border: none;
+}
+
+/* Autocomplete dropdown */
+.autocomplete-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  z-index: 50;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  margin-top: 4px;
+  max-height: 240px;
+  overflow-y: auto;
+  box-shadow: var(--card-shadow);
+}
+
+.autocomplete-item {
+  padding: 10px 14px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.autocomplete-item:hover,
+.autocomplete-item.active {
+  background: var(--bg-hover);
+}
