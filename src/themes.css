@@ -1,87 +1,83 @@
-/* Tokyo Night (default) */
-[data-theme='tokyo-night'] {
-  --bg-primary: #1a1b26;
-  --bg-secondary: #24283b;
+/* Theme system -- CSS custom properties */
+
+html,
+html[data-theme='tokyo'] {
+  --bg: #16161e;
+  --surface: #1a1b26;
+  --text: #a9b1d6;
+  --text-dim: #565f89;
+  --accent: #73daca;
+  --accent-2: #7aa2f7;
+  --accent-3: #bb9af7;
+  --border: #292e42;
+  /* Aliases for backward compat */
+  --bg-primary: var(--bg);
+  --bg-secondary: var(--surface);
   --bg-tertiary: #2f3347;
   --bg-hover: #3b3f5c;
-  --text-primary: #c0caf5;
+  --text-primary: var(--text);
   --text-secondary: #a9b1d6;
-  --text-muted: #565f89;
-  --accent: #7aa2f7;
-  --accent-hover: #89b4fa;
-  --accent-secondary: #bb9af7;
-  --success: #9ece6a;
-  --warning: #e0af68;
-  --danger: #f7768e;
-  --border: #3b3f5c;
+  --text-muted: var(--text-dim);
   --card-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
   --input-bg: #1e2030;
-  --badge-bg: rgba(122, 162, 247, 0.15);
-  --badge-text: #7aa2f7;
 }
 
-/* Miami */
-[data-theme='miami'] {
-  --bg-primary: #1a1128;
-  --bg-secondary: #261a3a;
+html[data-theme='miami'] {
+  --bg: #0d0221;
+  --surface: #150535;
+  --text: #e0def4;
+  --text-dim: #908caa;
+  --accent: #ff2d95;
+  --accent-2: #00f0ff;
+  --accent-3: #ffe156;
+  --border: #2a1a4e;
+  --bg-primary: var(--bg);
+  --bg-secondary: var(--surface);
   --bg-tertiary: #33244e;
   --bg-hover: #402e60;
-  --text-primary: #f0e6ff;
+  --text-primary: var(--text);
   --text-secondary: #d4c5f0;
-  --text-muted: #7a6a99;
-  --accent: #ff6bcb;
-  --accent-hover: #ff85d5;
-  --accent-secondary: #00d4ff;
-  --success: #00e89d;
-  --warning: #ffd166;
-  --danger: #ff4d6d;
-  --border: #402e60;
-  --card-shadow: 0 4px 16px rgba(255, 107, 203, 0.1);
+  --text-muted: var(--text-dim);
+  --card-shadow: 0 4px 16px rgba(255, 45, 149, 0.1);
   --input-bg: #1e1530;
-  --badge-bg: rgba(255, 107, 203, 0.15);
-  --badge-text: #ff6bcb;
 }
 
-/* Matcha */
-[data-theme='matcha'] {
-  --bg-primary: #1a1f16;
-  --bg-secondary: #242b1e;
+html[data-theme='matcha'] {
+  --bg: #1c1a17;
+  --surface: #252320;
+  --text: #d4be98;
+  --text-dim: #7c6f64;
+  --accent: #8db660;
+  --accent-2: #d4be98;
+  --accent-3: #a9b665;
+  --border: #3c3836;
+  --bg-primary: var(--bg);
+  --bg-secondary: var(--surface);
   --bg-tertiary: #2e3726;
   --bg-hover: #3a4530;
-  --text-primary: #d4dbc8;
+  --text-primary: var(--text);
   --text-secondary: #b5c0a5;
-  --text-muted: #6b7a5a;
-  --accent: #8fb573;
-  --accent-hover: #a3c78a;
-  --accent-secondary: #c4a35a;
-  --success: #8fb573;
-  --warning: #d4a745;
-  --danger: #c75a5a;
-  --border: #3a4530;
+  --text-muted: var(--text-dim);
   --card-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
   --input-bg: #1e2419;
-  --badge-bg: rgba(143, 181, 115, 0.15);
-  --badge-text: #8fb573;
 }
 
-/* Gruvbox */
-[data-theme='gruvbox'] {
-  --bg-primary: #282828;
-  --bg-secondary: #3c3836;
+html[data-theme='gruvbox'] {
+  --bg: #282828;
+  --surface: #3c3836;
+  --text: #ebdbb2;
+  --text-dim: #928374;
+  --accent: #fb4934;
+  --accent-2: #fabd2f;
+  --accent-3: #b8bb26;
+  --border: #504945;
+  --bg-primary: var(--bg);
+  --bg-secondary: var(--surface);
   --bg-tertiary: #504945;
   --bg-hover: #665c54;
-  --text-primary: #ebdbb2;
+  --text-primary: var(--text);
   --text-secondary: #d5c4a1;
-  --text-muted: #928374;
-  --accent: #fabd2f;
-  --accent-hover: #fcd34d;
-  --accent-secondary: #83a598;
-  --success: #b8bb26;
-  --warning: #fabd2f;
-  --danger: #fb4934;
-  --border: #504945;
+  --text-muted: var(--text-dim);
   --card-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
   --input-bg: #1d2021;
-  --badge-bg: rgba(250, 189, 47, 0.15);
-  --badge-text: #fabd2f;
 }

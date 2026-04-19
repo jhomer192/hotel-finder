@@ -5,13 +5,7 @@
     <link rel="icon" type="image/svg+xml" href="/hotel-finder/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Cheap Hotel Finder</title>
-    <script>
-      // FOUC prevention: apply saved theme before first paint
-      (function() {
-        var theme = localStorage.getItem('hotel-finder-theme') || 'tokyo-night';
-        document.documentElement.setAttribute('data-theme', theme);
-      })();
-    </script>
+    <script>(function(){var s=localStorage.getItem('site-theme');if(s)document.documentElement.setAttribute('data-theme',s)})()</script>
   </head>
   <body>
     <div id="root"></div>

@@ -1,18 +1,20 @@
 import { useState, useCallback } from 'react';
 
-export type Theme = 'tokyo-night' | 'miami' | 'matcha' | 'gruvbox';
+export type Theme = 'tokyo' | 'miami' | 'matcha' | 'gruvbox';
 
 export const THEMES: { id: Theme; label: string }[] = [
-  { id: 'tokyo-night', label: 'Tokyo Night' },
+  { id: 'tokyo', label: 'Tokyo Night' },
   { id: 'miami', label: 'Miami' },
   { id: 'matcha', label: 'Matcha' },
   { id: 'gruvbox', label: 'Gruvbox' },
 ];
 
+const STORAGE_KEY = 'site-theme';
+
 function getInitialTheme(): Theme {
-  const saved = localStorage.getItem('hotel-finder-theme');
+  const saved = localStorage.getItem(STORAGE_KEY);
   if (saved && THEMES.some((t) => t.id === saved)) return saved as Theme;
-  return 'tokyo-night';
+  return 'tokyo';
 }
 
 export function useTheme() {
@@ -20,7 +22,7 @@ export function useTheme() {
 
   const setTheme = useCallback((t: Theme) => {
     setThemeState(t);
-    localStorage.setItem('hotel-finder-theme', t);
+    localStorage.setItem(STORAGE_KEY, t);
     document.documentElement.setAttribute('data-theme', t);
   }, []);
 

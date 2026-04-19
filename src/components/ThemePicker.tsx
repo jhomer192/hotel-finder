@@ -6,10 +6,10 @@ interface Props {
 }
 
 const THEME_COLORS: Record<Theme, string> = {
-  'tokyo-night': '#7aa2f7',
-  miami: '#ff6bcb',
-  matcha: '#8fb573',
-  gruvbox: '#fabd2f',
+  tokyo: '#73daca',
+  miami: '#ff2d95',
+  matcha: '#8db660',
+  gruvbox: '#fb4934',
 };
 
 export function ThemePicker({ theme, setTheme }: Props) {
