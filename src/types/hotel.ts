@@ -6,21 +6,14 @@ export interface SearchParams {
   rooms: number;
 }
 
-export interface BookingSource {
-  id: string;
+export interface OsmHotel {
+  id: number;
+  lat: number;
+  lng: number;
   name: string;
-  color: string;
-  description: string;
-  buildUrl: (params: SearchParams) => string;
-}
-
-export interface SearchResult {
-  city: string;
-  centerLat: number;
-  centerLng: number;
-  neighborhoods: string[];
-  sources: Array<{
-    source: BookingSource;
-    url: string;
-  }>;
+  stars: number | null;
+  address: string;
+  phone: string | null;
+  website: string | null;
+  distanceFromCenter: number; // km
 }

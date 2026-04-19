@@ -1,19 +1,18 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { SearchForm } from './components/SearchForm';
-import { SourcesGrid } from './components/SourcesGrid';
 import { MapView } from './components/MapView';
+import { HotelList, type SortKey } from './components/HotelList';
+import { Filters } from './components/Filters';
 import { ThemePicker } from './components/ThemePicker';
 import { useTheme } from './hooks/useTheme';
-import { BOOKING_SOURCES } from './data/sources';
 import { CITIES } from './data/cities';
-import type { SearchParams, BookingSource } from './types/hotel';
-
-type ViewMode = 'sources' | 'map';
+import { fetchHotels } from './api/overpass';
+import type { SearchParams, OsmHotel } from './types/hotel';
 
 interface SearchState {
   params: SearchParams;
-  sources: Array<{ source: BookingSource; url: string }>;
   city: { name: string; lat: number; lng: number };
+  hotels: OsmHotel[];
 }
 
 function getDefaultDates() {
@@ -28,26 +27,79 @@ function getDefaultDates() {
   };
 }
 
-function buildSourceUrls(params: SearchParams): Array<{ source: BookingSource; url: string }> {
-  return BOOKING_SOURCES.map(source => ({
-    source,
-    url: source.buildUrl(params),
-  }));
-}
+const ALL_STARS = new Set([0, 1, 2, 3, 4, 5]);
 
 export default function App() {
   const { theme, setTheme } = useTheme();
-  const [viewMode, setViewMode] = useState<ViewMode>('sources');
   const [searchState, setSearchState] = useState<SearchState | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [highlightedId, setHighlightedId] = useState<number | null>(null);
+  const [sortKey, setSortKey] = useState<SortKey>('distance');
+  const [starFilters, setStarFilters] = useState<Set<number>>(new Set(ALL_STARS));
+  const [nameQuery, setNameQuery] = useState('');
 
-  const search = useCallback((params: SearchParams) => {
+  const search = useCallback(async (params: SearchParams) => {
     const city = CITIES.find(c => c.name.toLowerCase() === params.destination.toLowerCase());
     if (!city) return;
-    setSearchState({
-      params,
-      sources: buildSourceUrls(params),
-      city: { name: city.name, lat: city.lat, lng: city.lng },
+
+    setLoading(true);
+    setError(null);
+    setHighlightedId(null);
+    setStarFilters(new Set(ALL_STARS));
+    setNameQuery('');
+    setSortKey('distance');
+
+    try {
+      const hotels = await fetchHotels(city.name, city.lat, city.lng);
+      setSearchState({
+        params,
+        city: { name: city.name, lat: city.lat, lng: city.lng },
+        hotels,
+      });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to fetch hotels');
+      setSearchState(null);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const toggleStar = useCallback((star: number) => {
+    setStarFilters(prev => {
+      const next = new Set(prev);
+      if (next.has(star)) {
+        next.delete(star);
+      } else {
+        next.add(star);
+      }
+      return next;
     });
+  }, []);
+
+  const filteredHotels = useMemo(() => {
+    if (!searchState) return [];
+    let list = searchState.hotels.filter(h => {
+      const hotelStar = h.stars ?? 0;
+      if (!starFilters.has(hotelStar)) return false;
+      if (nameQuery && !h.name.toLowerCase().includes(nameQuery.toLowerCase())) return false;
+      return true;
+    });
+
+    list = [...list].sort((a, b) => {
+      switch (sortKey) {
+        case 'name': return a.name.localeCompare(b.name);
+        case 'stars': return (b.stars ?? 0) - (a.stars ?? 0);
+        case 'distance': return a.distanceFromCenter - b.distanceFromCenter;
+        default: return 0;
+      }
+    });
+
+    return list;
+  }, [searchState, starFilters, nameQuery, sortKey]);
+
+  const handleHotelClick = useCallback((id: number) => {
+    setHighlightedId(id);
   }, []);
 
   return (
@@ -63,7 +115,7 @@ export default function App() {
         <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
           <h1 className="text-xl font-bold flex items-center gap-2" style={{ color: 'var(--accent)' }}>
             <span className="text-2xl">&#x1F3E8;</span>
-            Cheap Hotel Finder
+            Hotel Finder
           </h1>
           <ThemePicker theme={theme} setTheme={setTheme} />
         </div>
@@ -75,70 +127,115 @@ export default function App() {
         style={{ background: 'var(--bg-secondary)', borderColor: 'var(--border)' }}
       >
         <div className="max-w-7xl mx-auto px-4 py-5">
-          <SearchForm onSearch={search} loading={false} />
+          <SearchForm onSearch={search} loading={loading} />
         </div>
       </section>
 
-      {/* Results */}
-      {searchState && (
-        <main className="max-w-7xl mx-auto px-4 py-6 space-y-6">
-          {/* Toolbar */}
-          <div className="flex items-center justify-between">
-            <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
-              <span className="font-medium" style={{ color: 'var(--text-primary)' }}>{searchState.sources.length}</span> booking sites for{' '}
-              <span className="font-medium" style={{ color: 'var(--text-primary)' }}>{searchState.city.name}</span>
+      {/* Loading state */}
+      {loading && (
+        <div className="max-w-7xl mx-auto px-4 py-20 text-center">
+          <div className="inline-block">
+            <svg className="animate-spin h-8 w-8 mx-auto mb-4" viewBox="0 0 24 24" style={{ color: 'var(--accent)' }}>
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+            </svg>
+            <p className="text-lg" style={{ color: 'var(--text-primary)' }}>
+              Searching OpenStreetMap for hotels...
             </p>
+            <p className="text-sm mt-1" style={{ color: 'var(--text-muted)' }}>
+              Fetching real hotel data from Overpass API
+            </p>
+          </div>
+        </div>
+      )}
 
-            {/* View toggle */}
-            <div
-              className="flex rounded-lg overflow-hidden"
-              style={{ border: '1px solid var(--border)' }}
-            >
-              <button
-                onClick={() => setViewMode('sources')}
-                className="px-3 py-1.5 text-sm cursor-pointer"
-                style={{
-                  background: viewMode === 'sources' ? 'var(--accent)' : 'var(--bg-secondary)',
-                  color: viewMode === 'sources' ? 'var(--bg-primary)' : 'var(--text-secondary)',
-                }}
-              >
-                Sources
-              </button>
-              <button
-                onClick={() => setViewMode('map')}
-                className="px-3 py-1.5 text-sm cursor-pointer"
-                style={{
-                  background: viewMode === 'map' ? 'var(--accent)' : 'var(--bg-secondary)',
-                  color: viewMode === 'map' ? 'var(--bg-primary)' : 'var(--text-secondary)',
-                }}
-              >
-                Map
-              </button>
-            </div>
+      {/* Error state */}
+      {error && !loading && (
+        <div className="max-w-7xl mx-auto px-4 py-12 text-center">
+          <div className="text-4xl mb-4">&#x26A0;&#xFE0F;</div>
+          <p className="text-lg font-medium" style={{ color: 'var(--text-primary)' }}>
+            Something went wrong
+          </p>
+          <p className="text-sm mt-1" style={{ color: 'var(--text-muted)' }}>{error}</p>
+          <p className="text-sm mt-2" style={{ color: 'var(--text-muted)' }}>
+            The Overpass API may be rate-limited. Try again in a moment.
+          </p>
+        </div>
+      )}
+
+      {/* Results */}
+      {searchState && !loading && (
+        <main className="max-w-7xl mx-auto px-4 py-6 space-y-5">
+          {/* Summary */}
+          <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
+            <span className="font-medium" style={{ color: 'var(--text-primary)' }}>
+              {searchState.hotels.length}
+            </span>{' '}
+            real hotels found in{' '}
+            <span className="font-medium" style={{ color: 'var(--text-primary)' }}>
+              {searchState.city.name}
+            </span>{' '}
+            from OpenStreetMap
+          </p>
+
+          {/* Filters */}
+          <Filters
+            starFilters={starFilters}
+            onToggleStar={toggleStar}
+            nameQuery={nameQuery}
+            onNameQueryChange={setNameQuery}
+          />
+
+          {/* Legend */}
+          <div className="flex flex-wrap gap-4 text-xs" style={{ color: 'var(--text-muted)' }}>
+            <span className="flex items-center gap-1">
+              <span className="w-2.5 h-2.5 rounded-full inline-block" style={{ background: '#fbbf24' }} /> 5-star
+            </span>
+            <span className="flex items-center gap-1">
+              <span className="w-2.5 h-2.5 rounded-full inline-block" style={{ background: '#60a5fa' }} /> 4-star
+            </span>
+            <span className="flex items-center gap-1">
+              <span className="w-2.5 h-2.5 rounded-full inline-block" style={{ background: '#34d399' }} /> 3-star
+            </span>
+            <span className="flex items-center gap-1">
+              <span className="w-2.5 h-2.5 rounded-full inline-block" style={{ background: '#9ca3af' }} /> Other / Unknown
+            </span>
           </div>
 
-          {/* Main content */}
-          {viewMode === 'sources' ? (
-            <SourcesGrid sources={searchState.sources} cityName={searchState.city.name} />
-          ) : (
-            <MapView
-              cityName={searchState.city.name}
-              lat={searchState.city.lat}
-              lng={searchState.city.lng}
-            />
-          )}
+          {/* Map */}
+          <MapView
+            cityName={searchState.city.name}
+            lat={searchState.city.lat}
+            lng={searchState.city.lng}
+            hotels={filteredHotels}
+            checkIn={searchState.params.checkIn}
+            checkOut={searchState.params.checkOut}
+            highlightedId={highlightedId}
+            onHotelClick={handleHotelClick}
+          />
+
+          {/* Hotel list */}
+          <HotelList
+            hotels={filteredHotels}
+            cityName={searchState.city.name}
+            checkIn={searchState.params.checkIn}
+            checkOut={searchState.params.checkOut}
+            sortKey={sortKey}
+            onSortChange={setSortKey}
+            onHotelClick={handleHotelClick}
+          />
         </main>
       )}
 
       {/* Landing state */}
-      {!searchState && (
+      {!searchState && !loading && !error && (
         <div className="max-w-7xl mx-auto px-4 py-20 text-center">
           <div className="text-6xl mb-6">&#x1F3E8;</div>
           <h2 className="text-3xl font-bold mb-3" style={{ color: 'var(--text-primary)' }}>
-            Find Your Perfect Hotel Deal
+            Find Real Hotels Worldwide
           </h2>
           <p className="text-lg max-w-lg mx-auto" style={{ color: 'var(--text-muted)' }}>
-            Search {BOOKING_SOURCES.length} booking sites at once. Pick your city and dates, then click through to compare prices on every major platform.
+            Search {CITIES.length} cities for real hotel locations from OpenStreetMap. See them on a map, filter by stars, and book directly.
           </p>
           <div className="flex flex-wrap justify-center gap-2 mt-8 max-w-2xl mx-auto">
             {['Tokyo', 'Paris', 'Bangkok', 'New York', 'Barcelona', 'Bali', 'Prague', 'Lisbon', 'Marrakech', 'Singapore'].map(
@@ -173,7 +270,24 @@ export default function App() {
       {/* Footer */}
       <footer className="border-t mt-12" style={{ borderColor: 'var(--border)' }}>
         <div className="max-w-7xl mx-auto px-4 py-6 text-center text-xs" style={{ color: 'var(--text-muted)' }}>
-          Cheap Hotel Finder — Search aggregator across {BOOKING_SOURCES.length} booking sites.
+          Hotel data from{' '}
+          <a
+            href="https://www.openstreetmap.org"
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{ color: 'var(--accent)', textDecoration: 'underline' }}
+          >
+            OpenStreetMap
+          </a>
+          . Contribute at{' '}
+          <a
+            href="https://www.openstreetmap.org"
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{ color: 'var(--accent)', textDecoration: 'underline' }}
+          >
+            openstreetmap.org
+          </a>
         </div>
       </footer>
     </div>
