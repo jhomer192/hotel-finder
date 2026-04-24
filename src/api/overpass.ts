@@ -53,12 +53,14 @@ export async function fetchHotels(
   centerLat: number,
   centerLng: number,
 ): Promise<OsmHotel[]> {
-  // Check sessionStorage cache
+  // Check sessionStorage cache (24-hour TTL)
   const key = cacheKey(cityName);
   const cached = sessionStorage.getItem(key);
   if (cached) {
     try {
-      return JSON.parse(cached) as OsmHotel[];
+      const { ts, data } = JSON.parse(cached) as { ts: number; data: OsmHotel[] };
+      if (Date.now() - ts < 24 * 60 * 60 * 1000) return data;
+      sessionStorage.removeItem(key);
     } catch {
       sessionStorage.removeItem(key);
     }
@@ -101,9 +103,9 @@ export async function fetchHotels(
     })
     .sort((a, b) => a.distanceFromCenter - b.distanceFromCenter);
 
-  // Cache in sessionStorage
+  // Cache in sessionStorage with timestamp
   try {
-    sessionStorage.setItem(key, JSON.stringify(hotels));
+    sessionStorage.setItem(key, JSON.stringify({ ts: Date.now(), data: hotels }));
   } catch {
     // Storage full — ignore
   }

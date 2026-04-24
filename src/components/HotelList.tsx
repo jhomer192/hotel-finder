@@ -29,7 +29,12 @@ function starDisplay(stars: number | null): string {
 export function HotelList({ hotels, cityName, checkIn, checkOut, sortKey, onSortChange, onHotelClick }: Props) {
   const bookingUrl = (name: string) => {
     const q = encodeURIComponent(`${name} ${cityName}`);
-    return `https://www.booking.com/searchresults.html?ss=${q}&checkin=${checkIn}&checkout=${checkOut}`;
+    return `https://www.booking.com/search.html?ss=${q}&checkin=${checkIn}&checkout=${checkOut}`;
+  };
+
+  const hotelsComUrl = (name: string) => {
+    const q = encodeURIComponent(`${name} ${cityName}`);
+    return `https://www.hotels.com/search.do?q-destination=${q}`;
   };
 
   const sortBtn = (key: SortKey, label: string) => (
@@ -115,17 +120,29 @@ export function HotelList({ hotels, cityName, checkIn, checkOut, sortKey, onSort
                   {hotel.distanceFromCenter.toFixed(1)} km
                 </div>
 
-                {/* Book button */}
-                <a
-                  href={bookingUrl(hotel.name)}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  onClick={(e) => e.stopPropagation()}
-                  className="flex-shrink-0 px-3 py-1.5 rounded-lg text-xs font-semibold transition-opacity hover:opacity-80"
-                  style={{ background: '#003580', color: '#fff' }}
-                >
-                  Book
-                </a>
+                {/* Book buttons */}
+                <div className="flex gap-1.5 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
+                  <a
+                    href={bookingUrl(hotel.name)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-opacity hover:opacity-80"
+                    style={{ background: '#003580', color: '#fff' }}
+                    title="Search on Booking.com"
+                  >
+                    Booking
+                  </a>
+                  <a
+                    href={hotelsComUrl(hotel.name)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-opacity hover:opacity-80"
+                    style={{ background: '#c8102e', color: '#fff' }}
+                    title="Search on Hotels.com"
+                  >
+                    Hotels
+                  </a>
+                </div>
               </div>
             ))}
           </div>
